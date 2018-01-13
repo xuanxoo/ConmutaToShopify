@@ -21,13 +21,16 @@ namespace CrvnetSync.Entities
         public string articulo { get; set; }
         public string familia { get; set; }
 
+        public string colorvehiculo { get; set; }
+
+        public int puertasvehiculo { get; set; }
         public string metadatos { get; set; }
 
         public string descripcion
         {
             get {
                 StringBuilder sb = new StringBuilder();
-                sb.AppendFormat("<strong>Estado: {0}</strong><br/>", estado);
+                
 
                 var metadatosStr = this.metadatos.Split('|');
                 foreach(var meta in metadatosStr)
@@ -35,6 +38,8 @@ namespace CrvnetSync.Entities
                     if(!string.IsNullOrEmpty(meta))
                         sb.AppendFormat("{0} <br/>", meta);
                 }
+
+                sb.AppendFormat("<strong>Estado: {0}</strong>", estado);
 
                 return sb.ToString();
             }
@@ -45,18 +50,21 @@ namespace CrvnetSync.Entities
             get { return articulo + " - " + version; }
         }
 
-        public Producto(EntradaStock entrada, Referencia referencia)
+        public Producto(EntradaStock entrada)
         {
             this.referencia = entrada.referencia;
             this.estado = entrada.estado;
             this.nota = entrada.nota;
             this.precio = entrada.precio;
-            this.marca = referencia.marca;
-            this.modelo = referencia.modelo;
-            this.version = referencia.version;
-            this.familia = referencia.familia;
-            this.articulo = referencia.articulo;
+            this.marca = entrada.marca;
+            this.modelo = entrada.modelo;
+            this.version = entrada.version;
+            this.familia = entrada.familia;
+            this.articulo = entrada.articulo;
             this.metadatos = entrada.metadatos;
+            this.colorvehiculo = entrada.color;
+            this.puertasvehiculo = entrada.puertas;
+            
         }
     }
 }

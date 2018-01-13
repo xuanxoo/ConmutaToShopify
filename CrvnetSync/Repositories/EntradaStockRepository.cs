@@ -17,7 +17,17 @@ namespace CrvnetSync.Repositories
             using (IDbConnection dbConnection = Connection)
             {
                 dbConnection.Open();
-                return dbConnection.Query<EntradaStock>("SELECT * FROM entradastock where ubicacion = 'Almacenada' and precio > 0 limit 10");
+                var listado = dbConnection.Query<EntradaStock>(
+                    "select es.refid, es.referencia, es.estado, es.nota, es.ubicacion, es.precio, es.fechaentrada, es.fucambio, es.metadatos, es.fechamod,"+
+                    "v.color, v.fmatric, v.tipocombustible, v.puertas, v.nombreversion, " +
+                    "r.marca, r.modelo, r.version, r.articulo, r.familia, r.inicio, r.fin from entradastock es " +   
+                    "inner join referencias r on r.referencia = es.referencia "+
+                    "inner  join stockvehiculo sv on sv.refid = es.refid "+
+                    "inner join vehiculos v on v.idvehiculo = sv.idvehiculo "+
+                    "where ubicacion = 'Almacenada' and precio > 0 limit 10");
+
+                dbConnection.Close();
+                return listado;
             }
         }
     }

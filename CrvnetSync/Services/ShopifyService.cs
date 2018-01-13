@@ -14,6 +14,7 @@ namespace CrvnetSync.Services
     {
         private EntradaStrockRepository entradaRepo;
         private ReferenciaRepository referenciaRepo;
+        private ProductService productShopifyService;
 
         private const string shopifyCode = "crvnetsync";
         private const string shopifyUrl = "https://desgonztruck.myshopify.com";
@@ -34,8 +35,8 @@ namespace CrvnetSync.Services
             var entradas = entradaRepo.Almacenadas();
             foreach (var entrada in entradas)
             {
-                var referencia = referenciaRepo.ReferenciaById(entrada.referencia);
-                productos.Add(new Producto(entrada, referencia));
+                //var referencia = referenciaRepo.ReferenciaById(entrada.referencia);
+                productos.Add(new Producto(entrada));
             }
 
             Task theTask = ProcessAsync(productos);
@@ -45,17 +46,30 @@ namespace CrvnetSync.Services
 
         public static async Task ProcessAsync(IEnumerable<Producto> productos)
         {
-            var primera = productos.First();
+            //Parallel.ForEach(productos, async (p) => {
+            //    try
+            //    {
+            //        await AddShopifyProduct(p);
 
-            try
-            {
-                var result = await AddShopifyProduct(primera);  // set breakpoint
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Console.WriteLine(ex.Message);
+            //    }
+            //});
 
+            foreach (var p in productos) { 
+                try
+                {
+                    await AddShopifyProduct(p);
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+
 
         }
         
@@ -63,12 +77,12 @@ namespace CrvnetSync.Services
         public static async Task<Product> AddShopifyProduct(Producto productoShopify)
         {
 
-            var service = new ProductService(shopifyUrl, "aa59f8ba8ff9ed4b88ac2344b670ef04");
 
             var pVarians = new ProductVariant();
 
             if(productoShopify.precio > 0)
                 pVarians.Price = productoShopify.precio;
+
 
             var product = new Product()
             {
@@ -78,6 +92,7 @@ namespace CrvnetSync.Services
                 BodyHtml = productoShopify.descripcion,
                 ProductType = productoShopify.familia,
                 Variants = new List<ProductVariant>() { pVarians },
+                Tags = productoShopify.marca + "," + productoShopify.modelo + "," + productoShopify.version,
                 Images = new List<ProductImage>
                 {
                     new ProductImage
@@ -88,8 +103,9 @@ namespace CrvnetSync.Services
                     }
                 }
             };
-            
 
+
+            var service = new ProductService(shopifyUrl, "aa59f8ba8ff9ed4b88ac2344b670ef04");
             //By default, creating a product will publish it. To create an unpublished product:+1:
             return await service.CreateAsync(product, new ProductCreateOptions() { Published = true });
             
