@@ -41,5 +41,8 @@ namespace CrvnetSync.Models
         public int puertas { get; set; }
         public string nombreversion { get; set; }
 
+        //img
+        
+
     }
 }

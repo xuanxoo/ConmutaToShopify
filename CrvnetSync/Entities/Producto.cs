@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using CrvnetSync.Code;
 
 namespace CrvnetSync.Entities
 {
@@ -20,22 +20,17 @@ namespace CrvnetSync.Entities
         public string version { get; set; }
         public string articulo { get; set; }
         public string familia { get; set; }
-
         public string colorvehiculo { get; set; }
-
         public int puertasvehiculo { get; set; }
         public string metadatos { get; set; }
-
         public string descripcion
         {
             get {
                 StringBuilder sb = new StringBuilder();
-                
-
                 var metadatosStr = this.metadatos.Split('|');
                 foreach(var meta in metadatosStr)
                 {
-                    if(!string.IsNullOrEmpty(meta))
+                    if(!string.IsNullOrEmpty(meta) && Utils.ContainsLetters(meta))
                         sb.AppendFormat("{0} <br/>", meta);
                 }
 
@@ -44,13 +39,15 @@ namespace CrvnetSync.Entities
                 return sb.ToString();
             }
         }
+        
+        public IEnumerable<string> imagenesPath { get; set; }
 
         public string titulo
         {
             get { return articulo + " - " + version; }
         }
 
-        public Producto(EntradaStock entrada)
+        public Producto(EntradaStock entrada, IEnumerable<AlbumPiezas> imagenes)
         {
             this.referencia = entrada.referencia;
             this.estado = entrada.estado;
@@ -64,6 +61,16 @@ namespace CrvnetSync.Entities
             this.metadatos = entrada.metadatos;
             this.colorvehiculo = entrada.color;
             this.puertasvehiculo = entrada.puertas;
+
+            var imagenesPathList = new List<string>();
+            foreach(var imga in imagenes)
+            {
+                var imgName = imga.idficherofoto.ToString().PadLeft(12, '0');
+                var imgPath = "000/000/019/" + imgName + ".jpg";
+                imagenesPathList.Add(imgPath);
+            }
+            imagenesPath = imagenesPathList;
+
             
         }
     }

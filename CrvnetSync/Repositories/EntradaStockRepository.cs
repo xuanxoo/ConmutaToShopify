@@ -30,5 +30,19 @@ namespace CrvnetSync.Repositories
                 return listado;
             }
         }
+
+        public IEnumerable<AlbumPiezas> ImagenesPieza(double refId)
+        {
+            using (IDbConnection dbConnection = Connection)
+            {
+                dbConnection.Open();
+                var listado = dbConnection.Query<AlbumPiezas>(
+                    "select idficherofoto from albumpiezas "+
+                    "where refid = "+refId+"");
+
+                dbConnection.Close();
+                return listado;
+            }
+        }
     }
 }
