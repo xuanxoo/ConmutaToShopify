@@ -23,6 +23,7 @@ namespace CrvnetSync.Services
         private const string shopifyUrl = "https://desgonztruck.myshopify.com";
         private const string shopifyKey = "0876792a84855bd4a4d7cfdabd767eac";
         private const string shopifySecretKey = "4072e7901948ac219a3f1c62fee2062c";
+        private const string shopifyTokenAcces = "aa59f8ba8ff9ed4b88ac2344b670ef04";
 
         private string ImgPath = ConfigurationManager.AppSettings["ImgPath"];
 
@@ -54,7 +55,7 @@ namespace CrvnetSync.Services
             foreach (var p in productos) { 
                 try
                 {
-                    Console.WriteLine("Importando producto: " p.referencia);
+                    Console.WriteLine("Importando producto: " + p.referencia);
                     await AddShopifyProduct(p);
 
                 }
@@ -70,7 +71,7 @@ namespace CrvnetSync.Services
         {
             Product product = RellenaProductoShopify(productoShopify);
 
-            var service = new ProductService(shopifyUrl, "aa59f8ba8ff9ed4b88ac2344b670ef04");
+            var service = new ProductService(shopifyUrl, shopifyTokenAcces);
             //By default, creating a product will publish it. To create an unpublished product:+1:
             return await service.CreateAsync(product, new ProductCreateOptions() { Published = true });
         }
@@ -110,11 +111,49 @@ namespace CrvnetSync.Services
                 BodyHtml = productoShopify.descripcion,
                 ProductType = productoShopify.familia,
                 Variants = new List<ProductVariant>() { pVarians },
-                Tags = productoShopify.marca + "," + productoShopify.modelo + "," + productoShopify.version,
+                //Tags = productoShopify.marca + "," + productoShopify.modelo + "," + productoShopify.version,
                 Images = pImages
             };
 
+            //marca-modelo
+            var coleccionMarca = GetCollection(productoShopify.marca);
+            var coleccionModelo = GetCollection(productoShopify.modelo);
+            //AddCollect(coleccionMarca.Id, product.Id.Value);
+            AddCollect(coleccionModelo.Id, product.Id.Value);
+
             return product;
+        }
+
+        private async Task GetCollection(string collectionName)
+        {
+            var service = new CustomCollectionService(shopifyUrl, shopifyTokenAcces);
+            var collections = await service.ListAsync();
+
+            var collection = collections.Where(c => c.Title == collectionName).FirstOrDefault();
+            if (collection == null) collection = await AddColletion(collectionName);
+        }
+
+        private async Task<CustomCollection> AddColletion(string title)
+        {
+            var service = new CustomCollectionService(shopifyUrl, shopifyTokenAcces);
+            return await service.CreateAsync(new CustomCollection()
+            {
+                Title = title,
+                Published = true,
+                PublishedAt = DateTime.UtcNow
+               
+            });
+        }
+
+        private async void AddCollect(long collectionId, long productId)
+        {
+            var service = new CollectService(shopifyUrl, shopifyTokenAcces);
+            var collect = new Collect()
+            {
+                CollectionId = collectionId,
+                ProductId = productId
+            };
+            await service.CreateAsync(collect);
         }
     }
 }
